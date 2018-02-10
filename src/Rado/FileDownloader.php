@@ -1,7 +1,10 @@
 <?php
+declare(strict_types=1);
+
+
 
 // zwróć uwagę na to, że deklaracja trybu strict znajduje się w każdym pliku
-declare(strict_types=1);
+
 
 // przestrzeń Rado, pozwala nam mieć pewność, że nie będzie kolizji nazw klas
 // z innymi bibliotekami, a także pozwoli nam na otwarcie kodu do użcyia
@@ -13,6 +16,10 @@ namespace Rado;
 // nazw pełnych:
 use Rado\App\{Config, Logger};
 use Rado\Tool\Helper;
+use Symfony\Component\Filesystem\Filesystem;
+use Guzzlehttp\Client;
+
+
 
 /**
  * Klasa odpowiedzialna za pobieranie plikow ze zdalnych serwerow.
@@ -52,8 +59,9 @@ class FileDownloader
         $this->logger->saveLog("Rozpoczecie pobierania pliku: {$url}");
 
         $client = new \GuzzleHttp\Client();
-        $res = $client->request('GET', '$url');
-        return $res->getBody()->getContents();
+        $response = $client->request('GET', $url);
+        //return $response->getBody()->getContents();
+        return (string) $response->getBody();
 
 
         //return file_get_contents($url);
@@ -86,9 +94,22 @@ class FileDownloader
      */
     public function downloadToFile(string $url, string $destinationFile): void
     {
-        file_put_contents($destinationFile, $this->download($url));
+        $fs = new Filesystem();
+
+        // works only if image-ICC has been modified after image.jpg
+        $fs->copy($url, $destinationFile, true);
+
+       // file_put_contents($destinationFile, $this->download($url));
         $this->logger->saveLog("Zakonczenie pobierania pliku: {$destinationFile}");
     }
+
+
+
+
+
+
+
+
 
     /**
      * Metoda ustawia konfigurację.
